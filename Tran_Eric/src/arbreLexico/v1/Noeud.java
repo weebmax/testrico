@@ -1,0 +1,107 @@
+package arbreLexico.v1;
+
+public class Noeud extends NoeudAbstrait {
+	private char valeur;
+	private NoeudAbstrait fils;
+
+	public Noeud(NoeudAbstrait frere, NoeudAbstrait fils, char valeur) {
+		super(frere);
+		if (fils == null)
+			throw new IllegalArgumentException("pas de fils null");
+		this.fils = fils;
+		this.valeur = valeur;
+	}
+
+	@Override
+	public boolean contient(String s) {
+		if (s.isEmpty())
+			return false;
+		char c = s.charAt(0);
+		if (c < valeur)
+			return false;
+		if (c == valeur)
+			return fils.contient(s.substring(1));
+		if (frere == null)
+			return false;
+		return frere.contient(s);
+	}
+
+	@Override
+	public boolean prefixe(String s) {
+		if (s.isEmpty())
+			return true;
+		char c = s.charAt(0);
+		if (c < valeur)
+			return false;
+		if (c == valeur)
+			return fils.prefixe(s.substring(1));
+		if (frere == null)
+			return false;
+		return frere.prefixe(s);
+	}
+
+	@Override
+	public int nbMots() {
+		return fils.nbMots() + (frere == null ? 0 : frere.nbMots());
+	}
+
+	@Override
+	public NoeudAbstrait ajout(String s) throws ModificationImpossibleException {
+		if (s.isEmpty()) {
+			Marque m = new Marque(this);
+			return m;
+		}
+		char c = s.charAt(0);
+		if (c < valeur) {
+			NoeudAbstrait n = new Marque(null);
+			for (int i = s.length() - 1; i >= 0; i --)
+				n = new Noeud(null, n, s.charAt(i));
+			n.frere = this;
+			return n;
+		}
+		if (c == valeur) {
+			fils = fils.ajout(s.substring(1));
+			return this;
+		}
+		if (frere == null) {
+			NoeudAbstrait n = new Marque(null);
+			for (int i = s.length() - 1; i >= 0; i --)
+				n = new Noeud(null, n, s.charAt(i));
+			frere = n;
+			return this;
+		}
+		frere = frere.ajout(s);
+		return this;
+	}
+
+	@Override
+	public NoeudAbstrait suppr(String s) throws ModificationImpossibleException {
+		if (s.isEmpty())
+			throw new ModificationImpossibleException("suppression impossible");
+		char c = s.charAt(0);
+		if (c < valeur)
+			throw new ModificationImpossibleException("suppression impossible");
+		if (c == valeur) {
+			fils = fils.suppr(s.substring(1));
+			return (fils == null) ? frere : this;
+		}
+		if (frere == null)
+			throw new ModificationImpossibleException("suppression impossible");
+		frere = frere.suppr(s);
+		return this;
+	}
+
+	@Override
+	public String toString(String s) {
+		//return fils.toString(s + valeur) + (frere == null ? "" : frere.toString(s));
+		if (frere == null)
+			return fils.toString(s + valeur);
+		return fils.toString(s + valeur) + frere.toString(s);
+	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}
